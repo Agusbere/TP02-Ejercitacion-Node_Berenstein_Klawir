@@ -1,0 +1,29 @@
+{
+  "name": "tp02-ejercitacion-node_berenstein_klawir",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/Agusbere/TP02-Ejercitacion-Node_Berenstein_Klawir#readme",
+  "bugs": {
+    "url": "https://github.com/Agusbere/TP02-Ejercitacion-Node_Berenstein_Klawir/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Agusbere/TP02-Ejercitacion-Node_Berenstein_Klawir.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "ej01" : "node src/ej01,js",
+    "ej02" : "node src/ej02,js",
+    "ej03" : "node src/ej03,js",
+    "ej04" : "node src/ej04,js",
+    "ej05" : "node src/ej05,js",
+    "ej06" : "node src/ej06,js",
+    "ej07" : "node src/ej07,js",
+    "ej08" : "node src/ej08,js"
+  }
+}
