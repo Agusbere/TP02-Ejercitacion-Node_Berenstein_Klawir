@@ -7,121 +7,77 @@ const agent = new https.Agent({
 
 const APIKEY = "a41637f6";
 
-const OMDBSearchByPage = async (searchText, page = 1) => {
-  let returnObject = {
-    respuesta: false,
-    cantidadTotal: 0,
-    datos: [],
-  };
-
+const makeOMDBRequest = async (params) => {
   try {
     const response = await axios.get("https://www.omdbapi.com/", {
       params: {
-        s: searchText,
-        page: page,
-        apikey: APIKEY,
+        ...params, 
+        apikey: APIKEY, 
       },
       httpsAgent: agent,
     });
 
     if (response.data.Response === "True") {
-      returnObject.respuesta = true;
-      returnObject.cantidadTotal = parseInt(response.data.totalResults, 10);
-      returnObject.datos = response.data.Search;
+      return {
+        respuesta: true,
+        datos: response.data,
+      };
     } else {
-      returnObject.respuesta = false;
-      returnObject.datos = [];
+      return {
+        respuesta: false,
+        datos: {},
+      };
     }
   } catch (error) {
-    console.error("Error en OMDBSearchByPage:", error);
-    returnObject.respuesta = false;
-    returnObject.datos = [];
+    console.error("Error en makeOMDBRequest:", error);
+    return {
+      respuesta: false,
+      datos: {},
+    };
   }
-
-  return returnObject;
 };
 
-const OMDBSearchComplete = async (searchText, page = 1, results = 0) => {
-  let returnObject = {
-    respuesta: false,
-    cantidadTotal: 0,
-    datos: [],
-  };
+const OMDBSearch = async (searchText, page = 1, getAll = false) => {
+  const result = await makeOMDBRequest({ s: searchText, page });
 
-  try {
-    const firstResponse = await axios.get("https://www.omdbapi.com/", {
-      params: {
-        s: searchText,
-        page: page,
-        apikey: APIKEY,
-      },
-      httpsAgent: agent,
-    });
+  if (result.respuesta) {
+    let returnObject = {
+      respuesta: true,
+      cantidadTotal: parseInt(result.datos.totalResults, 10),
+      datos: result.datos.Search,
+    };
 
-    if (firstResponse.data.Response === "True") {
-      results = parseInt(firstResponse.data.totalResults, 10);
-      returnObject.respuesta = true;
-      returnObject.cantidadTotal = results;
-      returnObject.datos = firstResponse.data.Search;
-
-      const pages = Math.ceil(results / 10);
-
+    if (getAll) {
+      const pages = Math.ceil(returnObject.cantidadTotal / 10);
       for (let i = page + 1; i <= pages; i++) {
-        const response = await axios.get("https://www.omdbapi.com/", {
-          params: {
-            texto: searchText,
-            page: i,
-            apikey: APIKEY,
-          },
-          httpsAgent: agent,
-        });
-
-        if (response.data.Response === "True") {
-          returnObject.datos = returnObject.datos.concat(response.data.Search);
+        const additionalResponse = await makeOMDBRequest({ s: searchText, page: i });
+        if (additionalResponse.respuesta) {
+          returnObject.datos = returnObject.datos.concat(additionalResponse.datos.Search);
         }
       }
-    } else {
-      returnObject.respuesta = false;
-      returnObject.datos = [];
     }
-  } catch (error) {
-    console.error("Error en OMDBSearchComplete:", error);
-    returnObject.respuesta = false;
-    returnObject.datos = [];
-  }
 
-  return returnObject;
+    return returnObject;
+  } else {
+    return {
+      respuesta: false,
+      cantidadTotal: 0,
+      datos: [],
+    };
+  }
 };
 
 const OMDBGetByImdbID = async (imdbID) => {
-  let returnObject = {
-    respuesta: false,
-    datos: {},
-  };
+  const result = await makeOMDBRequest({ i: imdbID });
+  return result;
+};
 
-  try {
-    const response = await axios.get("https://www.omdbapi.com/", {
-      params: {
-        i: imdbID,
-        apikey: APIKEY,
-      },
-      httpsAgent: agent,
-    });
+const OMDBSearchByPage = async (searchText, page = 1) => {
+  return OMDBSearch(searchText, page, false);
+};
 
-    if (response.data.Response === "True") {
-      returnObject.respuesta = true;
-      returnObject.datos = response.data;
-    } else {
-      returnObject.respuesta = false;
-      returnObject.datos = {};
-    }
-  } catch (error) {
-    console.error("Error en OMDBGetByImdbID:", error);
-    returnObject.respuesta = false;
-    returnObject.datos = {};
-  }
-
-  return returnObject;
+const OMDBSearchComplete = async (searchText, page = 1) => {
+  return OMDBSearch(searchText, page, true);
 };
 
 export { OMDBSearchByPage, OMDBSearchComplete, OMDBGetByImdbID };
